@@ -2,7 +2,7 @@
 
 <div align="center">
 🚘 Modern Car Rental Platform | 📊 Admin Dashboard | 📱 Responsive Design
-</div>>
+</div>
 
 ## ✨ Project Overview
 
