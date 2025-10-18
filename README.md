@@ -1,14 +1,8 @@
 # 🚗 NextCar: Fullstack Car Rental & Admin Management System
 
 <div align="center">
-Show Image
-Show Image
-Show Image
-Show Image
-Show Image
-Show Image
 🚘 Modern Car Rental Platform | 📊 Admin Dashboard | 📱 Responsive Design
-</div>
+</div>>
 
 ## ✨ Project Overview
 
@@ -99,11 +93,4 @@ Fullstack-car-rental-and-admin-management-system/
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
----
 
-<div align="center">
-  
-  **✨ Created with passion by Ali Rezai ✨**
-  [![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)]((https://github.com/AliDevEng))
-  
-</div>
