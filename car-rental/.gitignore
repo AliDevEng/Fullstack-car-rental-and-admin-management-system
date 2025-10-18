@@ -1,0 +1,44 @@
+# IDE-specifika filer
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.idea_modules/
+
+# Kompilerade filer
+*.class
+target/
+build/
+bin/
+*.jar
+*.war
+*.ear
+
+# Logfiler
+*.log
+logs/
+
+# OS-specifika filer
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+.mvn/wrapper/
+
+# Spring Boot
+/target/
+application-*.yml
+application-*.properties
+!application.properties
+!application.yml
+.springBeans
+
+# Node-moduler
+node_modules/
+npm-debug.log
+yarn-error.log
