@@ -1,15 +1,15 @@
 package com.nextcar.carrental.controller;
 
 import com.nextcar.carrental.dto.CustomerRegistrationDTO;
-
 import com.nextcar.carrental.entity.Customer;
 import com.nextcar.carrental.service.CustomerService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/customers")
@@ -18,40 +18,38 @@ public class CustomerController {
     @Autowired
     private CustomerService customerService;
 
-    // GET all customers
+    // GET /customers
     @GetMapping
-    public List<Customer> getAllCustomers() {
-        return customerService.getAllCustomers();
+    public ResponseEntity<List<Customer>> getAllCustomers() {
+        return ResponseEntity.ok(customerService.getAllCustomers());
     }
 
-    // GET customer by ID
+    // GET /customers/5
     @GetMapping("/{id}")
-    public Optional<Customer> getCustomerById(@PathVariable Long id) {
-        return customerService.getCustomerById(id);
+    public ResponseEntity<Customer> getCustomerById(@PathVariable Long id) {
+        return ResponseEntity.ok(customerService.getCustomerById(id));
     }
 
-
-    // {
-    //  "firstName": "Test",
-    //  "lastName": "Testsson",
-    //  "email": "test@example.com",
-    //  "password": "password123",
-    //  "confirmPassword": "password123",
-    //  "address": "Testgatan 1",
-    //  "postalCode": "123 45",
-    //  "city": "Stockholm",
-    //  "country": "Sverige",
-    //  "phone": "0701234567"
-    //}
-    // POST /customers/register - Registrera ny kund
+    // POST /customers/register - 201 Created
     @PostMapping("/register")
-    public ResponseEntity<String> registerCustomer(@RequestBody CustomerRegistrationDTO dto) {
-        String result = customerService.registerCustomer(dto);
+    public ResponseEntity<Customer> registerCustomer(@Valid @RequestBody CustomerRegistrationDTO dto) {
+        Customer created = customerService.registerCustomer(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
 
-        if (result.equals("SUCCESS")) {
-            return ResponseEntity.ok("Registrering lyckades! Du kan nu logga in.");
-        } else {
-            return ResponseEntity.badRequest().body(result);
-        }
+    // PUT /customers/5
+    @PutMapping("/{id}")
+    public ResponseEntity<Customer> updateCustomer(
+            @PathVariable Long id,
+            @Valid @RequestBody CustomerRegistrationDTO dto) {
+        Customer updated = customerService.updateCustomer(id, dto);
+        return ResponseEntity.ok(updated);
+    }
+
+    // DELETE /customers/5
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCustomer(@PathVariable Long id) {
+        customerService.deleteCustomer(id);
+        return ResponseEntity.noContent().build();
     }
 }

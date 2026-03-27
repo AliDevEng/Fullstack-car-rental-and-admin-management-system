@@ -4,11 +4,12 @@ import com.nextcar.carrental.dto.CustomerRegistrationDTO;
 import com.nextcar.carrental.entity.Customer;
 import com.nextcar.carrental.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -17,65 +18,34 @@ public class CustomerService {
     @Autowired
     private CustomerRepository customerRepository;
 
-    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
-    // Hämta alla kunder
     public List<Customer> getAllCustomers() {
         return customerRepository.findAll();
     }
 
-    // Hämta en kund via ID
-    public Optional<Customer> getCustomerById(Long id) {
-        return customerRepository.findById(id);
+    public Customer getCustomerById(Long id) {
+        return customerRepository.findById(id)
+            .orElseThrow(() -> new NoSuchElementException("Customer not found with id: " + id));
     }
 
-    // Registrera ny kund
-    public String registerCustomer(CustomerRegistrationDTO dto) {
-        // Validering 1: Kolla att alla fält är ifyllda
-        if (dto.getFirstName() == null || dto.getFirstName().isEmpty() ||
-                dto.getLastName() == null || dto.getLastName().isEmpty() ||
-                dto.getEmail() == null || dto.getEmail().isEmpty() ||
-                dto.getPassword() == null || dto.getPassword().isEmpty() ||
-                dto.getConfirmPassword() == null || dto.getConfirmPassword().isEmpty() ||
-                dto.getAddress() == null || dto.getAddress().isEmpty() ||
-                dto.getPostalCode() == null || dto.getPostalCode().isEmpty() ||
-                dto.getCity() == null || dto.getCity().isEmpty() ||
-                dto.getCountry() == null || dto.getCountry().isEmpty() ||
-                dto.getPhone() == null || dto.getPhone().isEmpty()) {
-            return "Alla fält måste fyllas i";
-        }
-
-        // Validering 2: Email-format (måste innehålla @)
-        if (!dto.getEmail().contains("@")) {
-            return "Ogiltig e-postadress";
-        }
-
-        // Validering 3: Kolla om email redan finns
-        Optional<Customer> existingCustomer = customerRepository.findByEmail(dto.getEmail());
-        if (existingCustomer.isPresent()) {
-            return "E-post redan registrerad";
-        }
-
-        // Validering 4: Lösenord minst 8 tecken
-        if (dto.getPassword().length() < 8) {
-            return "Lösenord måste vara minst 8 tecken";
-        }
-
-        // Validering 5: Lösenorden måste matcha
+    public Customer registerCustomer(CustomerRegistrationDTO dto) {
+        // Business rule: passwords must match
         if (!dto.getPassword().equals(dto.getConfirmPassword())) {
-            return "Lösenorden matchar inte";
+            throw new IllegalArgumentException("Passwords do not match");
         }
 
-        // Skapa ny Customer
+        // Business rule: email must be unique
+        if (customerRepository.findByEmail(dto.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("Email is already registered");
+        }
+
         Customer newCustomer = new Customer();
         newCustomer.setFirstName(dto.getFirstName());
         newCustomer.setLastName(dto.getLastName());
         newCustomer.setEmail(dto.getEmail());
-
-        // Hasha lösenordet med BCrypt
-        String hashedPassword = passwordEncoder.encode(dto.getPassword());
-        newCustomer.setPassword(hashedPassword);
-
+        newCustomer.setPassword(passwordEncoder.encode(dto.getPassword()));
         newCustomer.setAddress(dto.getAddress());
         newCustomer.setPostalCode(dto.getPostalCode());
         newCustomer.setCity(dto.getCity());
@@ -83,9 +53,35 @@ public class CustomerService {
         newCustomer.setPhone(dto.getPhone());
         newCustomer.setCreated_At(LocalDateTime.now());
 
-        // Spara i databasen
-        customerRepository.save(newCustomer);
+        return customerRepository.save(newCustomer);
+    }
 
-        return "SUCCESS";
+    public Customer updateCustomer(Long id, CustomerRegistrationDTO dto) {
+        Customer existing = getCustomerById(id);
+
+        // If email changed, ensure new email is not already taken
+        if (!existing.getEmail().equals(dto.getEmail())) {
+            if (customerRepository.findByEmail(dto.getEmail()).isPresent()) {
+                throw new IllegalArgumentException("Email is already registered");
+            }
+        }
+
+        existing.setFirstName(dto.getFirstName());
+        existing.setLastName(dto.getLastName());
+        existing.setEmail(dto.getEmail());
+        existing.setAddress(dto.getAddress());
+        existing.setPostalCode(dto.getPostalCode());
+        existing.setCity(dto.getCity());
+        existing.setCountry(dto.getCountry());
+        existing.setPhone(dto.getPhone());
+
+        return customerRepository.save(existing);
+    }
+
+    public void deleteCustomer(Long id) {
+        if (!customerRepository.existsById(id)) {
+            throw new NoSuchElementException("Customer not found with id: " + id);
+        }
+        customerRepository.deleteById(id);
     }
 }
