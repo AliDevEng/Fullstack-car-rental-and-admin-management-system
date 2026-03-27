@@ -5,17 +5,18 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "cars_category")
+@Table(name = "CarsCategories")
 public class CarsCategory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "Id")
     private Integer id;
 
-    @Column(nullable = false, length = 50)
+    @Column(name = "Name", nullable = false, length = 255)
     private String name;
 
-    @JsonIgnore // Stoppar loop i JSON när de visar innehållet i vilka cars som har denna kategorin
+    @JsonIgnore
     @OneToMany(mappedBy = "category")
     private List<Car> cars;
 

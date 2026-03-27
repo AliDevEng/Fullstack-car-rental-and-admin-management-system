@@ -26,11 +26,11 @@ public class CustomerController {
 
     // GET /customers/5
     @GetMapping("/{id}")
-    public ResponseEntity<Customer> getCustomerById(@PathVariable Long id) {
+    public ResponseEntity<Customer> getCustomerById(@PathVariable Integer id) {
         return ResponseEntity.ok(customerService.getCustomerById(id));
     }
 
-    // POST /customers/register - 201 Created
+    // POST /customers/register — 201 Created
     @PostMapping("/register")
     public ResponseEntity<Customer> registerCustomer(@Valid @RequestBody CustomerRegistrationDTO dto) {
         Customer created = customerService.registerCustomer(dto);
@@ -40,7 +40,7 @@ public class CustomerController {
     // PUT /customers/5
     @PutMapping("/{id}")
     public ResponseEntity<Customer> updateCustomer(
-            @PathVariable Long id,
+            @PathVariable Integer id,
             @Valid @RequestBody CustomerRegistrationDTO dto) {
         Customer updated = customerService.updateCustomer(id, dto);
         return ResponseEntity.ok(updated);
@@ -48,7 +48,7 @@ public class CustomerController {
 
     // DELETE /customers/5
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCustomer(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteCustomer(@PathVariable Integer id) {
         customerService.deleteCustomer(id);
         return ResponseEntity.noContent().build();
     }

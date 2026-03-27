@@ -1,36 +1,47 @@
 package com.nextcar.carrental.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "rentals")
+@Table(name = "Rentals")
 public class Rental {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "Id")
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "customersId", nullable = false)
+    @JoinColumn(name = "CustomerId", nullable = false)
     private Customer customer;
 
     @ManyToOne
-    @JoinColumn(name = "carsId", nullable = false)
+    @JoinColumn(name = "CarId", nullable = false)
     private Car car;
 
+    // Nullable — set after payment is created (matches C# schema)
     @ManyToOne
-    @JoinColumn(name = "paymentId", nullable = false)
+    @JoinColumn(name = "PaymentId", nullable = true)
     private Payment payment;
 
-    @Column(nullable = false)
-    private LocalDate rentalDate;
+    @Column(name = "RentalDate", nullable = false)
+    private LocalDateTime rentalDate;
 
-    @Column(nullable = false)
-    private LocalDate startDate;
+    @Column(name = "StartDate", nullable = false)
+    private LocalDateTime startDate;
 
-    @Column(nullable = false)
-    private LocalDate endDate;
+    @Column(name = "EndDate", nullable = false)
+    private LocalDateTime endDate;
+
+    @Column(name = "BookingNumber", nullable = false, unique = true, length = 255)
+    private String bookingNumber;
+
+    @Column(name = "Status", nullable = false, length = 20)
+    private String status = "PENDING";
+
+    @Column(name = "CreatedAt", nullable = false)
+    private LocalDateTime createdAt;
 
     // Getters and setters
     public Integer getId() { return id; }
@@ -45,12 +56,21 @@ public class Rental {
     public Payment getPayment() { return payment; }
     public void setPayment(Payment payment) { this.payment = payment; }
 
-    public LocalDate getRentalDate() { return rentalDate; }
-    public void setRentalDate(LocalDate rentalDate) { this.rentalDate = rentalDate; }
+    public LocalDateTime getRentalDate() { return rentalDate; }
+    public void setRentalDate(LocalDateTime rentalDate) { this.rentalDate = rentalDate; }
 
-    public LocalDate getStartDate() { return startDate; }
-    public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
+    public LocalDateTime getStartDate() { return startDate; }
+    public void setStartDate(LocalDateTime startDate) { this.startDate = startDate; }
 
-    public LocalDate getEndDate() { return endDate; }
-    public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
+    public LocalDateTime getEndDate() { return endDate; }
+    public void setEndDate(LocalDateTime endDate) { this.endDate = endDate; }
+
+    public String getBookingNumber() { return bookingNumber; }
+    public void setBookingNumber(String bookingNumber) { this.bookingNumber = bookingNumber; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

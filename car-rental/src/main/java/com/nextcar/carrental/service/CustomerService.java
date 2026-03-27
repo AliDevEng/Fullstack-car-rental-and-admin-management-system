@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 @Service
 public class CustomerService {
@@ -25,41 +24,37 @@ public class CustomerService {
         return customerRepository.findAll();
     }
 
-    public Customer getCustomerById(Long id) {
+    public Customer getCustomerById(Integer id) {
         return customerRepository.findById(id)
             .orElseThrow(() -> new NoSuchElementException("Customer not found with id: " + id));
     }
 
     public Customer registerCustomer(CustomerRegistrationDTO dto) {
-        // Business rule: passwords must match
         if (!dto.getPassword().equals(dto.getConfirmPassword())) {
             throw new IllegalArgumentException("Passwords do not match");
         }
-
-        // Business rule: email must be unique
         if (customerRepository.findByEmail(dto.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Email is already registered");
         }
 
-        Customer newCustomer = new Customer();
-        newCustomer.setFirstName(dto.getFirstName());
-        newCustomer.setLastName(dto.getLastName());
-        newCustomer.setEmail(dto.getEmail());
-        newCustomer.setPassword(passwordEncoder.encode(dto.getPassword()));
-        newCustomer.setAddress(dto.getAddress());
-        newCustomer.setPostalCode(dto.getPostalCode());
-        newCustomer.setCity(dto.getCity());
-        newCustomer.setCountry(dto.getCountry());
-        newCustomer.setPhone(dto.getPhone());
-        newCustomer.setCreated_At(LocalDateTime.now());
+        Customer customer = new Customer();
+        customer.setFirstName(dto.getFirstName());
+        customer.setLastName(dto.getLastName());
+        customer.setEmail(dto.getEmail());
+        customer.setPassword(passwordEncoder.encode(dto.getPassword()));
+        customer.setAddress(dto.getAddress());
+        customer.setPostalCode(dto.getPostalCode());
+        customer.setCity(dto.getCity());
+        customer.setCountry(dto.getCountry());
+        customer.setPhone(dto.getPhone());
+        customer.setCreatedAt(LocalDateTime.now());
 
-        return customerRepository.save(newCustomer);
+        return customerRepository.save(customer);
     }
 
-    public Customer updateCustomer(Long id, CustomerRegistrationDTO dto) {
+    public Customer updateCustomer(Integer id, CustomerRegistrationDTO dto) {
         Customer existing = getCustomerById(id);
 
-        // If email changed, ensure new email is not already taken
         if (!existing.getEmail().equals(dto.getEmail())) {
             if (customerRepository.findByEmail(dto.getEmail()).isPresent()) {
                 throw new IllegalArgumentException("Email is already registered");
@@ -78,7 +73,7 @@ public class CustomerService {
         return customerRepository.save(existing);
     }
 
-    public void deleteCustomer(Long id) {
+    public void deleteCustomer(Integer id) {
         if (!customerRepository.existsById(id)) {
             throw new NoSuchElementException("Customer not found with id: " + id);
         }

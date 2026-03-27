@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -25,23 +26,23 @@ public class CarService {
     @Autowired
     private RentalRepository rentalRepository;
 
-    // Hämta alla bilar (paginerat)
     public Page<Car> getAllCars(Pageable pageable) {
         return carRepository.findAll(pageable);
     }
 
-    // Hämta en bil via ID
     public Car getCarById(Integer id) {
         return carRepository.findById(id)
             .orElseThrow(() -> new NoSuchElementException("Car not found with id: " + id));
     }
 
-    // Spara eller uppdatera en bil
     public Car saveCar(Car car) {
+        // Set createdAt on new cars (id is null before first save)
+        if (car.getId() == null && car.getCreatedAt() == null) {
+            car.setCreatedAt(LocalDateTime.now());
+        }
         return carRepository.save(car);
     }
 
-    // Ta bort en bil
     public void deleteCar(Integer id) {
         if (!carRepository.existsById(id)) {
             throw new NoSuchElementException("Car not found with id: " + id);
@@ -49,13 +50,12 @@ public class CarService {
         carRepository.deleteById(id);
     }
 
-    // Hitta tillgängliga bilar baserat på datumintervall, kategori, sortering och paginering
     public List<Car> getAvailableCars(LocalDate startDate, LocalDate endDate, Integer categoryId, String sort) {
         List<Car> allCars = carRepository.findAll();
 
         if (categoryId != null) {
             allCars = allCars.stream()
-                    .filter(car -> car.getCategoryId().equals(categoryId))
+                    .filter(car -> car.getCategoryId() != null && car.getCategoryId().equals(categoryId))
                     .collect(Collectors.toList());
         }
 
@@ -72,6 +72,10 @@ public class CarService {
         return availableCars;
     }
 
+    public List<Car> getAvailableCars(LocalDate startDate, LocalDate endDate) {
+        return getAvailableCars(startDate, endDate, null, "asc");
+    }
+
     public List<Car> sortCars(List<Car> cars, String sort) {
         List<Car> sortedCars = new ArrayList<>(cars);
         if ("desc".equalsIgnoreCase(sort)) {
@@ -82,14 +86,13 @@ public class CarService {
         return sortedCars;
     }
 
-    public List<Car> getAvailableCars(LocalDate startDate, LocalDate endDate) {
-        return getAvailableCars(startDate, endDate, null, "asc");
-    }
-
+    // Rental dates are LocalDateTime — convert to LocalDate for day-level comparison
     private boolean isCarAvailable(Integer carId, LocalDate startDate, LocalDate endDate, List<Rental> allRentals) {
         for (Rental rental : allRentals) {
             if (rental.getCar().getId().equals(carId)) {
-                boolean overlaps = !(endDate.isBefore(rental.getStartDate()) || startDate.isAfter(rental.getEndDate()));
+                LocalDate rentalStart = rental.getStartDate().toLocalDate();
+                LocalDate rentalEnd   = rental.getEndDate().toLocalDate();
+                boolean overlaps = !(endDate.isBefore(rentalStart) || startDate.isAfter(rentalEnd));
                 if (overlaps) {
                     return false;
                 }

@@ -5,56 +5,64 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "cars")
+@Table(name = "Cars")
 public class Car {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "Id")
     private Integer id;
 
     @NotBlank(message = "Brand is required")
-    @Column(nullable = false, length = 50)
+    @Column(name = "Brand", nullable = false, length = 255)
     private String brand;
 
     @NotBlank(message = "Model is required")
-    @Column(nullable = false, length = 50)
+    @Column(name = "Model", nullable = false, length = 255)
     private String model;
 
     @NotNull(message = "Year is required")
     @Min(value = 1900, message = "Year must be 1900 or later")
-    @Column(nullable = false)
+    @Column(name = "Year", nullable = false)
     private Integer year;
 
     @NotBlank(message = "Fuel type is required")
-    @Column(nullable = false, length = 20)
+    @Column(name = "Fuel", nullable = false, length = 20)
     private String fuel;
 
     @NotBlank(message = "Transmission is required")
-    @Column(nullable = false, length = 20)
+    @Column(name = "Transmission", nullable = false, length = 20)
     private String transmission;
 
     @NotNull(message = "Category is required")
     @ManyToOne
-    @JoinColumn(name = "categoryId", nullable = false)
+    @JoinColumn(name = "CategoryId", nullable = false)
     private CarsCategory category;
 
     @NotNull(message = "Seats is required")
     @Min(value = 1, message = "Seats must be at least 1")
-    @Column(nullable = false)
+    @Column(name = "Seats", nullable = false)
     private Integer seats;
 
     @NotBlank(message = "Registration number is required")
-    @Column(nullable = false, length = 20)
+    @Column(name = "RegNr", nullable = false, length = 255)
     private String regNr;
 
     @NotNull(message = "Price is required")
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(name = "Price", nullable = false, precision = 18, scale = 2)
     private BigDecimal price;
 
-    @Column(name = "image_url")
+    @Column(name = "Status", nullable = false, length = 20)
+    private String status = "Available";
+
+    @Column(name = "ImageUrl", length = 500)
     private String imageUrl;
+
+    @Column(name = "CreatedAt", nullable = false)
+    private LocalDateTime createdAt;
 
     // Getters and setters
     public Integer getId() { return id; }
@@ -87,10 +95,17 @@ public class Car {
     public BigDecimal getPrice() { return price; }
     public void setPrice(BigDecimal price) { this.price = price; }
 
-    public Integer getCategoryId() {
-        return category != null ? category.getId() : null;
-    }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    // Helper to get categoryId directly
+    public Integer getCategoryId() {
+        return category != null ? category.getId() : null;
+    }
 }
