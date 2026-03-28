@@ -1,5 +1,7 @@
 package com.nextcar.carrental.controller;
 
+import com.nextcar.carrental.dto.CarResponseDTO;
+import com.nextcar.carrental.dto.PagedResponseDTO;
 import com.nextcar.carrental.entity.Car;
 import com.nextcar.carrental.service.CarService;
 import jakarta.validation.Valid;
@@ -24,10 +26,10 @@ public class CarController {
 
     // GET /cars?page=0&size=10&sort=price,asc
     @GetMapping
-    public ResponseEntity<Page<Car>> getAllCars(
+    public ResponseEntity<PagedResponseDTO<CarResponseDTO>> getAllCars(
             @PageableDefault(size = 10, sort = "id") Pageable pageable) {
-        Page<Car> cars = carService.getAllCars(pageable);
-        return ResponseEntity.ok(cars);
+        Page<CarResponseDTO> cars = carService.getAllCars(pageable).map(CarResponseDTO::new);
+        return ResponseEntity.ok(new PagedResponseDTO<>(cars));
     }
 
     // GET /cars/available?startDate=2024-10-15&endDate=2024-10-20&categoryId=1&sort=asc
@@ -63,30 +65,28 @@ public class CarController {
                     .body("End date must be at least 1 day after start date");
         }
 
-        List<Car> availableCars = carService.getAvailableCars(start, end, categoryId, sort);
+        List<CarResponseDTO> availableCars = carService.getAvailableCars(start, end, categoryId, sort)
+                .stream().map(CarResponseDTO::new).toList();
         return ResponseEntity.ok(availableCars);
     }
 
     // GET /cars/5
     @GetMapping("/{id}")
-    public ResponseEntity<Car> getCarById(@PathVariable Integer id) {
-        Car car = carService.getCarById(id);
-        return ResponseEntity.ok(car);
+    public ResponseEntity<CarResponseDTO> getCarById(@PathVariable Integer id) {
+        return ResponseEntity.ok(new CarResponseDTO(carService.getCarById(id)));
     }
 
     // POST /cars - 201 Created
     @PostMapping
-    public ResponseEntity<Car> createCar(@Valid @RequestBody Car car) {
-        Car savedCar = carService.saveCar(car);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedCar);
+    public ResponseEntity<CarResponseDTO> createCar(@Valid @RequestBody Car car) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(new CarResponseDTO(carService.saveCar(car)));
     }
 
     // PUT /cars/5
     @PutMapping("/{id}")
-    public ResponseEntity<Car> updateCar(@PathVariable Integer id, @Valid @RequestBody Car car) {
+    public ResponseEntity<CarResponseDTO> updateCar(@PathVariable Integer id, @Valid @RequestBody Car car) {
         car.setId(id);
-        Car updatedCar = carService.saveCar(car);
-        return ResponseEntity.ok(updatedCar);
+        return ResponseEntity.ok(new CarResponseDTO(carService.saveCar(car)));
     }
 
     // DELETE /cars/5
