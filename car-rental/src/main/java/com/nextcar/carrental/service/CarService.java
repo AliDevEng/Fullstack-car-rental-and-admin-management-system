@@ -59,10 +59,13 @@ public class CarService {
                     .collect(Collectors.toList());
         }
 
-        List<Rental> allRentals = rentalRepository.findAll();
+        // Only PENDING and ACTIVE rentals block availability
+        List<Rental> activeRentals = rentalRepository.findAll().stream()
+                .filter(r -> "PENDING".equals(r.getStatus()) || "ACTIVE".equals(r.getStatus()))
+                .collect(Collectors.toList());
 
         List<Car> availableCars = allCars.stream()
-                .filter(car -> isCarAvailable(car.getId(), startDate, endDate, allRentals))
+                .filter(car -> isCarAvailable(car.getId(), startDate, endDate, activeRentals))
                 .collect(Collectors.toList());
 
         if (sort != null && !sort.isEmpty()) {

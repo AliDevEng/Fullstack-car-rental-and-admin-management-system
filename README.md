@@ -56,11 +56,11 @@ The backend is built with **Java & Spring Boot** and is designed to share the sa
 - [x] Password hashing with BCrypt
 - [x] Global 401 / 403 JSON error handling (no HTML redirects)
 
-### 🔲 Phase 4 — Booking System
-- [ ] Rental creation
-- [ ] Availability checking
-- [ ] Booking management
-- [ ] Status tracking (`PENDING`, `ACTIVE`, `COMPLETED`, `CANCELLED`)
+### ✅ Phase 4 — Booking System
+- [x] Rental creation (`POST /rentals`)
+- [x] Availability checking (PENDING/ACTIVE rentals block dates; CANCELLED/COMPLETED do not)
+- [x] Booking management (view own, view all as admin, cancel)
+- [x] Status tracking (`PENDING`, `ACTIVE`, `COMPLETED`, `CANCELLED`)
 
 ### 🔲 Phase 5 — Payments & Deployment
 - [ ] Payment gateway integration
@@ -176,6 +176,12 @@ car-rental/src/main/java/com/nextcar/carrental/
 | `DELETE` | `/customers/{id}` | Admin | Delete customer |
 | `GET` | `/admin/stats` | Admin | Dashboard statistics |
 | `GET` | `/categories` | Public | List car categories |
+| `POST` | `/rentals` | Auth | Create a rental booking |
+| `GET` | `/rentals` | Admin | List all rentals |
+| `GET` | `/rentals/my` | Auth | Authenticated customer's rentals |
+| `GET` | `/rentals/{id}` | Auth | Single rental (owner or admin) |
+| `PUT` | `/rentals/{id}/cancel` | Auth | Cancel a PENDING rental |
+| `PUT` | `/rentals/{id}/status` | Admin | Update rental status |
 
 ---
 

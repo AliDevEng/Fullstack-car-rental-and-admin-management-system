@@ -63,11 +63,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/auth/login", "/auth/admin/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/customers/register").permitAll()
 
-                // Public: browsing cars (read-only)
+                // Public: browsing cars and categories (read-only)
                 .requestMatchers(HttpMethod.GET, "/cars", "/cars/**").permitAll()
-
-                // Public: static frontend files
-                .requestMatchers("/", "/**/*.html", "/**/*.css", "/js/**", "/images/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/categories").permitAll()
 
                 // Admin only: car management (write)
                 .requestMatchers(HttpMethod.POST, "/cars").hasAuthority("ADMIN")
@@ -78,6 +76,16 @@ public class SecurityConfig {
                 .requestMatchers("/admin/**").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/customers").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/customers/**").hasAuthority("ADMIN")
+
+                // Rentals: admin-only for full list and status updates
+                .requestMatchers(HttpMethod.GET, "/rentals").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/rentals/*/status").hasAuthority("ADMIN")
+
+                // Rentals: any authenticated user can create, view own, cancel
+                .requestMatchers(HttpMethod.POST, "/rentals").authenticated()
+                .requestMatchers(HttpMethod.GET, "/rentals/my").authenticated()
+                .requestMatchers(HttpMethod.GET, "/rentals/*").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/rentals/*/cancel").authenticated()
 
                 // All other requests require authentication
                 .anyRequest().authenticated()
