@@ -2,6 +2,7 @@ package com.nextcar.carrental.controller;
 
 import com.nextcar.carrental.dto.LoginDTO;
 import com.nextcar.carrental.dto.LoginResponseDTO;
+import com.nextcar.carrental.dto.MeResponseDTO;
 import com.nextcar.carrental.entity.Admin;
 import com.nextcar.carrental.entity.Customer;
 import com.nextcar.carrental.repository.AdminRepository;
@@ -10,6 +11,7 @@ import com.nextcar.carrental.security.JwtTokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -64,5 +66,32 @@ public class AuthController {
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of("status", 401, "error", "Invalid email or password"));
+    }
+
+    // GET /auth/me - return profile of the currently authenticated user
+    @GetMapping("/me")
+    public ResponseEntity<MeResponseDTO> me(Authentication auth) {
+        String email = auth.getName();
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ADMIN"));
+
+        if (isAdmin) {
+            Admin admin = adminRepository.findByEmail(email)
+                    .orElseThrow();
+            return ResponseEntity.ok(new MeResponseDTO(
+                    admin.getId(), admin.getEmail(), null, null, null, admin.getRole()
+            ));
+        }
+
+        Customer customer = customerRepository.findByEmail(email)
+                .orElseThrow();
+        return ResponseEntity.ok(new MeResponseDTO(
+                customer.getId(),
+                customer.getEmail(),
+                customer.getFirstName(),
+                customer.getLastName(),
+                customer.getPhone(),
+                "CUSTOMER"
+        ));
     }
 }
