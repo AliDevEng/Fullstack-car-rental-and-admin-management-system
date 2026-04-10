@@ -2,6 +2,7 @@ package com.nextcar.carrental.controller;
 
 import com.nextcar.carrental.dto.CarResponseDTO;
 import com.nextcar.carrental.dto.PagedResponseDTO;
+import com.nextcar.carrental.dto.UpdateCarStatusDTO;
 import com.nextcar.carrental.entity.Car;
 import com.nextcar.carrental.service.CarService;
 import jakarta.validation.Valid;
@@ -94,5 +95,13 @@ public class CarController {
     public ResponseEntity<Void> deleteCar(@PathVariable Integer id) {
         carService.deleteCar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // PUT /cars/5/status - admin: toggle car status (Available / Unavailable)
+    @PutMapping("/{id}/status")
+    public ResponseEntity<CarResponseDTO> updateCarStatus(
+            @PathVariable Integer id,
+            @Valid @RequestBody UpdateCarStatusDTO dto) {
+        return ResponseEntity.ok(new CarResponseDTO(carService.updateCarStatus(id, dto.getStatus())));
     }
 }

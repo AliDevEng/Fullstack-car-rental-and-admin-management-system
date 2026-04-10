@@ -1,5 +1,6 @@
 package com.nextcar.carrental.service;
 
+import com.nextcar.carrental.dto.AdminCreateRentalDTO;
 import com.nextcar.carrental.dto.CreateRentalDTO;
 import com.nextcar.carrental.dto.RentalResponseDTO;
 import com.nextcar.carrental.entity.Car;
@@ -120,8 +121,68 @@ public class RentalService {
             );
         }
 
+        // Customers must cancel at least 1 day before the start date; admins are exempt
+        if (!isAdmin) {
+            LocalDate startDay = rental.getStartDate().toLocalDate();
+            if (!startDay.isAfter(LocalDate.now())) {
+                throw new IllegalArgumentException(
+                    "Cancellation is only allowed at least 1 day before the rental start date"
+                );
+            }
+        }
+
         rental.setStatus("CANCELLED");
         return toDTO(rentalRepository.save(rental));
+    }
+
+    // ── Admin: create rental on behalf of a customer ──────────────────────────
+
+    public RentalResponseDTO createRentalForCustomer(AdminCreateRentalDTO dto) {
+        if (!dto.getStartDate().isBefore(dto.getEndDate())) {
+            throw new IllegalArgumentException("End date must be after start date");
+        }
+
+        Customer customer = customerRepository.findById(dto.getCustomerId())
+                .orElseThrow(() -> new NoSuchElementException("Customer not found with id: " + dto.getCustomerId()));
+
+        Car car = carRepository.findById(dto.getCarId())
+                .orElseThrow(() -> new NoSuchElementException("Car not found with id: " + dto.getCarId()));
+
+        if (!"Available".equalsIgnoreCase(car.getStatus())) {
+            throw new IllegalArgumentException("Car is not available for booking");
+        }
+
+        LocalDateTime startDT = dto.getStartDate().atStartOfDay();
+        LocalDateTime endDT   = dto.getEndDate().atStartOfDay();
+
+        List<?> conflicts = rentalRepository.findConflictingRentals(car.getId(), startDT, endDT);
+        if (!conflicts.isEmpty()) {
+            throw new IllegalArgumentException("Car is already booked for the selected dates");
+        }
+
+        Rental rental = new Rental();
+        rental.setCustomer(customer);
+        rental.setCar(car);
+        rental.setStartDate(startDT);
+        rental.setEndDate(endDT);
+        rental.setRentalDate(LocalDateTime.now());
+        rental.setBookingNumber(generateBookingNumber());
+        rental.setStatus("PENDING");
+        rental.setCreatedAt(LocalDateTime.now());
+
+        return toDTO(rentalRepository.save(rental));
+    }
+
+    // ── Admin: get rentals for a specific customer ─────────────────────────────
+
+    public List<RentalResponseDTO> getRentalsByCustomerId(Integer customerId) {
+        if (!customerRepository.existsById(customerId)) {
+            throw new NoSuchElementException("Customer not found with id: " + customerId);
+        }
+        return rentalRepository.findByCustomer_Id(customerId)
+                .stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
     // ── Admin: update rental status ────────────────────────────────────────────

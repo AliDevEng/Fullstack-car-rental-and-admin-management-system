@@ -62,7 +62,15 @@ The backend is built with **Java & Spring Boot** and is designed to share the sa
 - [x] Booking management (view own, view all as admin, cancel)
 - [x] Status tracking (`PENDING`, `ACTIVE`, `COMPLETED`, `CANCELLED`)
 
-### 🔲 Phase 5 — Payments & Deployment
+### ✅ Phase 5 — Extended Admin Controls & Business Rules
+- [x] Admin can create customers (`POST /admin/customers`)
+- [x] Admin can create rentals on behalf of customers (`POST /admin/rentals`)
+- [x] Admin user management — create, update, delete admin accounts (`POST/PUT/DELETE /admin/users`)
+- [x] Car status toggle — mark cars as Unavailable for maintenance (`PUT /cars/{id}/status`)
+- [x] Customer booking history per customer (`GET /admin/customers/{id}/rentals`)
+- [x] Cancellation deadline — customers can only cancel at least 1 day before the start date; admins are exempt
+
+### 🔲 Phase 6 — Payments & Deployment
 - [ ] Payment gateway integration
 - [ ] Transaction management
 - [ ] API documentation (Swagger / OpenAPI)
@@ -93,13 +101,14 @@ mr_rent
 - 🚙 Browse cars with filtering by category, sorting by price, pagination
 - 🔍 Check real-time availability by date range
 - 👤 Register / login with JWT authentication
-- 📅 Create and manage reservations
+- 📅 Create, view, and cancel reservations (cancellation allowed up to 1 day before start)
 
 ### 👩‍💻 For Administrators
 - 📊 Dashboard with live stats (total cars, customers, rentals, revenue)
-- 🚗 Full car inventory management (CRUD)
-- 👥 Customer management
-- 💰 Payment and booking tracking
+- 🚗 Full car inventory management (CRUD + status toggle)
+- 👥 Customer management (create, edit, delete)
+- 📋 Full booking management — create on behalf of customers, view history per customer
+- 🔑 Admin account management (create, update, delete — with self-deletion guard)
 
 ---
 
@@ -157,41 +166,66 @@ car-rental/src/main/java/com/nextcar/carrental/
 
 ---
 
-## 🔗 API Endpoints (current)
+## 🔗 API Endpoints
+
+### 🔓 Authentication
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
 | `POST` | `/auth/login` | Public | Customer login → JWT |
 | `POST` | `/auth/admin/login` | Public | Admin login → JWT |
-| `POST` | `/customers/register` | Public | Register new customer |
+
+### 🚗 Cars
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
 | `GET` | `/cars` | Public | List all cars (paginated) |
 | `GET` | `/cars/available` | Public | Available cars by date range |
 | `GET` | `/cars/{id}` | Public | Single car |
 | `POST` | `/cars` | Admin | Create car |
 | `PUT` | `/cars/{id}` | Admin | Update car |
+| `PUT` | `/cars/{id}/status` | Admin | Toggle car status (Available / Unavailable) |
 | `DELETE` | `/cars/{id}` | Admin | Delete car |
-| `GET` | `/customers` | Admin | List all customers |
-| `GET` | `/customers/{id}` | Auth | Customer by ID |
-| `PUT` | `/customers/{id}` | Auth | Update customer |
-| `DELETE` | `/customers/{id}` | Admin | Delete customer |
-| `GET` | `/admin/stats` | Admin | Dashboard statistics |
+
+### 📂 Categories
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
 | `GET` | `/categories` | Public | List car categories |
-| `POST` | `/rentals` | Auth | Create a rental booking |
+
+### 👤 Customers
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `POST` | `/customers/register` | Public | Self-register as customer |
+| `GET` | `/customers` | Admin | List all customers |
+| `GET` | `/customers/{id}` | Auth | Customer by ID (own or admin) |
+| `PUT` | `/customers/{id}` | Auth | Update customer (own or admin) |
+| `DELETE` | `/customers/{id}` | Admin | Delete customer |
+
+### 📅 Rentals
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `POST` | `/rentals` | Auth | Create a rental booking (self) |
 | `GET` | `/rentals` | Admin | List all rentals |
-| `GET` | `/rentals/my` | Auth | Authenticated customer's rentals |
+| `GET` | `/rentals/my` | Auth | Authenticated customer's own rentals |
 | `GET` | `/rentals/{id}` | Auth | Single rental (owner or admin) |
-| `PUT` | `/rentals/{id}/cancel` | Auth | Cancel a PENDING rental |
+| `PUT` | `/rentals/{id}/cancel` | Auth | Cancel a PENDING rental (≥1 day before start) |
 | `PUT` | `/rentals/{id}/status` | Admin | Update rental status |
 
----
+### 🛡️ Admin
 
-## 🔮 Coming Next
-
-- 📅 Full booking system with availability locking
-- 💳 Payment gateway integration
-- 📖 Swagger / OpenAPI documentation at `/swagger-ui`
-- 🐳 `docker-compose` for one-command startup
-- 🔄 CI/CD pipeline
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/admin` | Admin | List all admin accounts |
+| `GET` | `/admin/stats` | Admin | Dashboard statistics |
+| `POST` | `/admin/users` | Admin | Create new admin account |
+| `PUT` | `/admin/users/{id}` | Admin | Update admin email / role |
+| `DELETE` | `/admin/users/{id}` | Admin | Delete admin account (cannot delete self) |
+| `POST` | `/admin/customers` | Admin | Create customer (walk-in / phone booking) |
+| `GET` | `/admin/customers/{id}/rentals` | Admin | Full booking history for a specific customer |
+| `POST` | `/admin/rentals` | Admin | Create rental on behalf of a customer |
 
 ---
 

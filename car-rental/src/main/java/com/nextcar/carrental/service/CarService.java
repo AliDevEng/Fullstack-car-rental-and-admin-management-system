@@ -50,6 +50,12 @@ public class CarService {
         carRepository.deleteById(id);
     }
 
+    public Car updateCarStatus(Integer id, String status) {
+        Car car = getCarById(id);
+        car.setStatus(status);
+        return carRepository.save(car);
+    }
+
     public List<Car> getAvailableCars(LocalDate startDate, LocalDate endDate, Integer categoryId, String sort) {
         List<Car> allCars = carRepository.findAll();
 
